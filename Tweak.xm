@@ -148,7 +148,7 @@ UIButton *enableMenu;
 		cell.textLabel.textColor = [UIColor blackColor];
 }
 
-	if (!enabled[indexPath.row] && indexPath.row != 6) {
+	if (!enabled[indexPath.row] && indexPath.row != 5) {
 		cell.accessoryType = UITableViewCellAccessoryCheckmark;
 	} else {
 		cell.accessoryType = UITableViewCellAccessoryNone;
@@ -159,13 +159,13 @@ UIButton *enableMenu;
 %new
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	if ([tableView cellForRowAtIndexPath:indexPath].accessoryType == UITableViewCellAccessoryNone 
-	&& [tableView cellForRowAtIndexPath:indexPath] != [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:6 inSection:0]]) {
+	&& [tableView cellForRowAtIndexPath:indexPath] != [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:5 inSection:0]]) {
 		[[tableView cellForRowAtIndexPath:indexPath] setAccessoryType:UITableViewCellAccessoryCheckmark];
 	} else {
 		[[tableView cellForRowAtIndexPath:indexPath] setAccessoryType:UITableViewCellAccessoryNone];
 	}
 
-	if (indexPath.row == 6) { 
+	if (indexPath.row == 5) { 
 		[hacksView setHidden:YES];
 		[hacksList setHidden:YES];
 		[enableMenu setHidden:NO];
