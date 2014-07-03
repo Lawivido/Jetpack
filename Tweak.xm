@@ -2,6 +2,7 @@
 Jetpack Cheats
 By: Lawivido/Razzile
 Credit Due: AlphaMatter
+File: Tweak.xm
 
 Features:
 Auto Collect Coins [0x12CF0] WORKS
@@ -29,6 +30,8 @@ To-Do
 */
 
 #include <substrate.h>
+#include "Settings.h"
+#include "Hooks.h"
 
 @interface MortarAppDelegate : NSObject <UITableViewDelegate, UITableViewDataSource>
 @end
@@ -43,54 +46,6 @@ BOOL menuEnabled = false;
 
 BOOL enabled[7] = {true,true,true,true,true,true,true};
 
-float (*old_missileSpeed)(void *self, unsigned long speed);
-bool (*old_autoCoins)(void *self, bool autocoin);
-bool (*old_autoVehicle)(void *self, bool autovehicle);
-bool (*old_autoToken)(void *self, bool autoToken);
-bool (*old_dumbLazer)(void *self, bool dumb);
-bool (*old_dumbMissile)(void *self, bool dumb);
-void (*old_dumbMissileBot)(void *self);
-bool (*old_dumbGates)(void *self, bool dumb);
-bool (*old_boostHeadstart2)(void *self);
-
-//------
-//Coins
-//------
-
-bool autoCoins(void *self, bool autocoin) {
-	return true;
-}
-
-void autoCoinsOff(void *self, bool autocoin) {
-}
-
-bool autoVehicle(void *self, bool autovehicle) {
-	return true;
-}
-
-bool autoToken(void *self, bool autotoken) {
-	return true;
-}
-
-bool dumbLazer(void *self, bool dumb) {
-	return false;
-}
-
-bool dumbMissile(void *self, bool dumb) {
-	return false;
-}
-
-bool dumbGates(void *self, bool dumb) {
-	return false;
-}
-
-void dumbMissileBot(void *self) {
-}
-
-float missileSpeed(void *self, unsigned long speed) {
-	//return 1.0f;
-	return missileSpeedSlider.value;
-}
 
 /* bool boostHeadstart2(void *self) {
 	return true;
@@ -155,6 +110,7 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 	NSIndexPath *missileSpeedCell = [NSIndexPath indexPathForRow:4 inSection:0];
 	UITableViewCell *cell = [hacksList cellForRowAtIndexPath:missileSpeedCell];
 	cell.textLabel.text = missileSpeedSliderValue;
+	jetpackSettings["kMissile"].set(missileSpeedSlider.value);
 }
 
 %new
@@ -189,7 +145,6 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 	
 	if (indexPath.row == 5) {
 		[cell addSubview:missileSpeedSlider];
-		MSHookFunction((void*)(0x5CA68+1),(void *)missileSpeed,(void**)&old_missileSpeed);
 	}
 	return cell;
 }
@@ -209,34 +164,35 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 		[hacksView setHidden:YES];
 		[hacksList setHidden:YES];
 		[enableMenu setHidden:NO];
-	} else if (indexPath.row == 0) {	//coins
-		if (enabled[0]) {
-			enabled[0] = false;
-			MSHookFunction((void*)(0x12CF0+1),(void *)autoCoins,(void**)&old_autoCoins);
-		} else if (!enabled[0]) {
-			enabled[0] = true;
-			MSHookFunction((void*)(0x12CF0+1),(void *)autoCoinsOff,(void**)&old_autoCoins);
-		}
-	} else if (indexPath.row == 1) { //vehicles
-		enabled[1] = false;
-		MSHookFunction((void*)(0x897E8+1),(void *)autoVehicle,(void**)&old_autoVehicle);	
+	} else if (indexPath.row == 0) 
+	{	//coins;
+		bool coins = jetpackSettings["kCoins"];
+		jetpackSettings["kCoins"].set(!coins);	
+	} 
+	else if (indexPath.row == 1) { //vehicles
+		bool vehicles = jetpackSettings["kVehicles"];
+		jetpackSettings["kVehicles"].set(!vehicles);	
 	} else if (indexPath.row == 2) { //token
-		enabled[2] = false;
-		MSHookFunction((void*)(0x9C928+1),(void *)autoToken,(void**)&old_autoToken);	
+		bool tokens = jetpackSettings["kTokens"];
+		jetpackSettings["kTokens"].set(!tokens);		
 	} else if (indexPath.row == 3) { //invincibility
-		enabled[3] = false;
-		MSHookFunction((void*)(0x161C8+1),(void *)dumbLazer,(void**)&old_dumbLazer);
-		MSHookFunction((void*)(0x154AF8+1),(void *)dumbMissile,(void**)&old_dumbMissile);
-		MSHookFunction((void*)(0x1BB38+1),(void *)dumbGates,(void**)&old_dumbGates);
-		MSHookFunction((void*)(0x15494C+1),(void *)dumbMissileBot,(void**)&old_dumbMissileBot);		
-	} /* else if (indexPath.row == 4) { //missile speed
-		enabled[4] = false;
-		[cell addSubview:missileSpeedSlider];
-		cell.textLabel.text = [NSString stringWithFormat:@"Missile Speed Multiplier: %f", missileSpeedSlider.value];
-		//MSHookFunction((void*)(0x5CA68+1),(void *)missileSpeed,(void**)&old_missileSpeed);	
-	} */
+		bool invincibility = jetpackSettings["kInvincibility"];
+		jetpackSettings["kInvincibility"].set(!invincibility);		
+	} 
 
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
 %end
+
+%ctor 
+{
+	MSHookFunction((void*)(0x12CF0+1),(void *)autoCoins,(void**)&old_autoCoins);
+	MSHookFunction((void*)(0x897E8+1),(void *)autoVehicle,(void**)&old_autoVehicle);
+	MSHookFunction((void*)(0x9C928+1),(void *)autoToken,(void**)&old_autoToken);
+	MSHookFunction((void*)(0x161C8+1),(void *)dumbLazer,(void**)&old_dumbLazer);
+	MSHookFunction((void*)(0x154AF8+1),(void *)dumbMissile,(void**)&old_dumbMissile);
+	MSHookFunction((void*)(0x1BB38+1),(void *)dumbGates,(void**)&old_dumbGates);
+	MSHookFunction((void*)(0x15494C+1),(void *)dumbMissileBot,(void**)&old_dumbMissileBot);
+	MSHookFunction((void*)(0x5CA68+1),(void *)missileSpeed,(void**)&old_missileSpeed);
+}
