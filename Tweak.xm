@@ -29,9 +29,7 @@ To-Do
 	4. Auto-Orientation
 */
 
-#include <substrate.h>
 #include "Settings.h"
-#include "Hooks.h"
 
 @interface MortarAppDelegate : NSObject <UITableViewDelegate, UITableViewDataSource>
 @end
@@ -184,15 +182,3 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 }
 
 %end
-
-%ctor 
-{
-	MSHookFunction((void*)(0x12CF0+1),(void *)autoCoins,(void**)&old_autoCoins);
-	MSHookFunction((void*)(0x897E8+1),(void *)autoVehicle,(void**)&old_autoVehicle);
-	MSHookFunction((void*)(0x9C928+1),(void *)autoToken,(void**)&old_autoToken);
-	MSHookFunction((void*)(0x161C8+1),(void *)dumbLazer,(void**)&old_dumbLazer);
-	MSHookFunction((void*)(0x154AF8+1),(void *)dumbMissile,(void**)&old_dumbMissile);
-	MSHookFunction((void*)(0x1BB38+1),(void *)dumbGates,(void**)&old_dumbGates);
-	MSHookFunction((void*)(0x15494C+1),(void *)dumbMissileBot,(void**)&old_dumbMissileBot);
-	MSHookFunction((void*)(0x5CA68+1),(void *)missileSpeed,(void**)&old_missileSpeed);
-}

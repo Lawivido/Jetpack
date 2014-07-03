@@ -5,6 +5,9 @@ Credit Due: AlphaMatter
 File: Settings.h
 */
 
+#ifndef __Settings__
+#define __Settings__
+
 #include <iostream>
 #include <string>
 #include <Foundation/Foundation.h>
@@ -16,8 +19,9 @@ using namespace std;
 
 class settings {
 public:
-
+	settings(const char *_path) { path = _path; }
 	static int GetPrefInt(const char* key);
+	static float GetPrefFloat(const char* key);
 	static bool GetPrefBool(const char* key);
 
 	class settings_proxy {
@@ -55,43 +59,5 @@ public:
 
 };
 
-int settings::GetPrefInt(const char* key)
-{
-	return [[[NSDictionary dictionaryWithContentsOfFile:[NSString stringWithUTF8String:path]] valueForKey:[NSString stringWithUTF8String:key]] intValue];
-}
-
-int settings::GetPrefFloat(const char* key)
-{
-	return [[[NSDictionary dictionaryWithContentsOfFile:[NSString stringWithUTF8String:path]] valueForKey:[NSString stringWithUTF8String:key]] floatValue];
-}
-
-bool settings::GetPrefBool(const char* key) 
-{
-	return [[[NSDictionary dictionaryWithContentsOfFile:[NSString stringWithUTF8String:path]] valueForKey:[NSString stringWithUTF8String:key]] boolValue];
-}
-
-void settings_proxy::set(bool value)
-{
-	NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:[NSString stringWithUTF8String:path]];
-	NSNumber *val = [NSNumber numberWithBool:value];
-	[dict setValue:val forKey:[NSString stringWithUTF8String:path]];
-	[dict writeToFile: filepath atomically: YES];
-}
-
-void settings_proxy::set(int value)
-{
-	NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:[NSString stringWithUTF8String:path]];
-	NSNumber *val = [NSNumber numberWithInt:value];
-	[dict setValue:val forKey:[NSString stringWithUTF8String:path]];
-	[dict writeToFile: filepath atomically: YES];
-}
-
-void settings_proxy::set(float value)
-{
-	NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:[NSString stringWithUTF8String:path]];
-	NSNumber *val = [NSNumber numberWithFloat:value];
-	[dict setValue:val forKey:[NSString stringWithUTF8String:path]];
-	[dict writeToFile: filepath atomically: YES];
-}
-
-Settings("/var/mobile/Library/Preferences/jetpack.plist") jetpackSettings;
+extern settings jetpackSettings;
+#endif
