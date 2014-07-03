@@ -4,9 +4,8 @@ By: Lawivido/Razz
 Credit Due: AlphaMatter
 ```
 
-Features:
-
 ```
+Features:
 Auto Collect Coins [0x12CF0] WORKS
 	MSHookFunction((void*)(0x12CF0+1),(void *)autoCoins,(void**)&old_autoCoins);
 Auto Collect Vehicle - WORKS
@@ -28,5 +27,6 @@ To-Do
 	1. Add Razzile's hacks
 	2. Sliders
 	3. Ability to turn hacks off
+       4. Auto-Rotation
 ```
 
