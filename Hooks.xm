@@ -5,8 +5,7 @@ Credit Due: AlphaMatter
 File: Hooks.mm
 */
 #include <substrate.h>
-#include "Hooks.h"
-
+#include "Settings.h"
 
 float (*old_missileSpeed)(void *self, unsigned long speed);
 bool (*old_autoCoins)(void *self, void *game);
