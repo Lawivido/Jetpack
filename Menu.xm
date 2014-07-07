@@ -42,12 +42,9 @@ UISlider *missileSpeedSlider = [[UISlider alloc] initWithFrame:CGRectMake(20, ho
 
 BOOL menuEnabled = false;
 
-BOOL enabled[7] = {true,true,true,true,true,true,true};
-
-
-/* bool boostHeadstart2(void *self) {
-	return true;
-} */
+bool enabled[7] = {false,false,false,false,false,false,false};
+const char* keyList[7] = {"kCurrency", "kCoins", "kVehicle", "kTokens", "kInvincibility", "kMissile"};
+int hacksCount = 5;
 
 UIButton *enableMenu;
 
@@ -57,11 +54,6 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 %hook MortarAppDelegate
 
 -(void)applicationDidBecomeActive:(id)arg {
-/* UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Jetpack Joyride Hack" message:@"Hacked by Lawivido&Razzile for iOSCheaters.com!" delegate:nil cancelButtonTitle:@"Enjoy!" otherButtonTitles:nil];
-[alert show];
-[alert release]; */
-	%orig;
-
 	hookedView = MSHookIvar<UIView*>(self,"_window");
 
 	hacksView = [[UIView alloc] initWithFrame:CGRectMake(0,0, hookedView.bounds.size.width, hookedView.bounds.size.height)]; 
@@ -74,13 +66,15 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 	[hacksList setBackgroundView:nil];
 	[hacksList setDataSource:self];
 	[hacksList setDelegate:self];
+	[hacksList setAlpha:0.8];
 	[hacksView addSubview:hacksList];
 	[hacksList setHidden:YES];
-	
+
+
 	missileSpeedSlider.minimumValue = 1.0;
 	missileSpeedSlider.maximumValue = 20.0;
 	missileSpeedSlider.continuous = YES;
-	missileSpeedSlider.value = 1.0;
+	missileSpeedSlider.value = jetpackSettings["kMissile"];
 	[missileSpeedSlider addTarget:self action:@selector(missileSpeedSliderChanged:) forControlEvents:UIControlEventValueChanged];
 
  	enableMenu = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -89,6 +83,11 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 	[enableMenu addTarget:self action:@selector(showMenu) forControlEvents:UIControlEventTouchUpInside];
 
 	[hookedView addSubview: enableMenu];
+	for (int i = 0; i < hacksCount; i++)
+	{
+		enabled[i] = jetpackSettings[keyList[i]];
+	}
+	return %orig;
 }
 
 %new
@@ -108,7 +107,7 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 	NSIndexPath *missileSpeedCell = [NSIndexPath indexPathForRow:4 inSection:0];
 	UITableViewCell *cell = [hacksList cellForRowAtIndexPath:missileSpeedCell];
 	cell.textLabel.text = missileSpeedSliderValue;
-	jetpackSettings["kMissile"].set(missileSpeedSlider.value);
+	jetpackSettings["kMissile"] = missileSpeedSlider.value;
 }
 
 %new
@@ -118,12 +117,14 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 
 %new
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-	cellNames = [[NSMutableArray arrayWithObjects:@"Auto Collect Coins",@"Auto Collect Vehicle",@"Auto Collect Tokens",@"Invincibility",@"Missile Speed Multiplier: 1.000000",@"",@"Return",nil] retain];
+	if(!cellNames)
+		cellNames = [[NSMutableArray arrayWithObjects:@"Unlimited Coins",@"Auto Collect Coins",@"Auto Collect Vehicle",@"Auto Collect Tokens",@"Invincibility",@"Missile Speed Multiplier: 1.000000",@"",@"Return",nil] retain];
 	return [cellNames count];
 }
 
 %new 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+	
 	static NSString* const SwitchCellID = @"SwitchCell";
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:SwitchCellID];
 
@@ -135,13 +136,13 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 		cell.textLabel.textColor = [UIColor blackColor];
 }
 
-	if (!enabled[indexPath.row] && indexPath.row != 6 && indexPath.row != 5 && indexPath.row != 4) {
+	if (enabled[indexPath.row] && indexPath.row != 7 && indexPath.row != 6 && indexPath.row != 5) {
 		cell.accessoryType = UITableViewCellAccessoryCheckmark;
 	} else {
 		cell.accessoryType = UITableViewCellAccessoryNone;
 	}
 	
-	if (indexPath.row == 5) {
+	if (indexPath.row == 6) {
 		[cell addSubview:missileSpeedSlider];
 	}
 	return cell;
@@ -169,8 +170,8 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 		enabled[0] = !coins;
 	} 
 	else if (indexPath.row == 1) { //vehicles
-		bool vehicles = jetpackSettings["kVehicles"];
-		jetpackSettings["kVehicles"] = !vehicles;
+		bool vehicles = jetpackSettings["kVehicle"];
+		jetpackSettings["kVehicle"] = !vehicles;
 		enabled[1] = !vehicles;	
 	} else if (indexPath.row == 2) { //token
 		bool tokens = jetpackSettings["kTokens"];
