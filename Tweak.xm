@@ -165,19 +165,22 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 	} else if (indexPath.row == 0) 
 	{	//coins;
 		bool coins = jetpackSettings["kCoins"];
-		jetpackSettings["kCoins"].set(!coins);	
+		jetpackSettings["kCoins"] = !coins;	
+		enabled[0] = !coins;
 	} 
 	else if (indexPath.row == 1) { //vehicles
 		bool vehicles = jetpackSettings["kVehicles"];
-		jetpackSettings["kVehicles"].set(!vehicles);	
+		jetpackSettings["kVehicles"] = !vehicles;
+		enabled[1] = !vehicles;	
 	} else if (indexPath.row == 2) { //token
 		bool tokens = jetpackSettings["kTokens"];
-		jetpackSettings["kTokens"].set(!tokens);		
+		jetpackSettings["kTokens"] = !tokens;
+		enabled[2] = !tokens;		
 	} else if (indexPath.row == 3) { //invincibility
 		bool invincibility = jetpackSettings["kInvincibility"];
-		jetpackSettings["kInvincibility"].set(!invincibility);		
+		jetpackSettings["kInvincibility"] = !invincibility;	
+		enabled[3] = !invincibility;	
 	} 
-
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 

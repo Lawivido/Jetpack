@@ -1,42 +1,45 @@
 #include "Settings.h"
 
-settings jetpackSettings("/var/mobile/Library/Preferences/jetpack.plist");
-const char *path;
+Settings("/var/mobile/Library/Preferences/jetpack.plist") jetpackSettings;
+
+NSMutableDictionary *prefs;
+
 int settings::GetPrefInt(const char* key)
 {
-	return [[[NSDictionary dictionaryWithContentsOfFile:[NSString stringWithUTF8String:path]] valueForKey:[NSString stringWithUTF8String:key]] intValue];
+	return [[prefs valueForKey:[NSString stringWithUTF8String:key]] intValue];
 }
 
 float settings::GetPrefFloat(const char* key)
 {
-	return [[[NSDictionary dictionaryWithContentsOfFile:[NSString stringWithUTF8String:path]] valueForKey:[NSString stringWithUTF8String:key]] floatValue];
+	return [[prefs valueForKey:[NSString stringWithUTF8String:key]] floatValue];
 }
 
 bool settings::GetPrefBool(const char* key) 
 {
-	return [[[NSDictionary dictionaryWithContentsOfFile:[NSString stringWithUTF8String:path]] valueForKey:[NSString stringWithUTF8String:key]] boolValue];
+	return [[prefs valueForKey:[NSString stringWithUTF8String:key]] boolValue];
 }
 
 void settings::settings_proxy::set(bool value)
 {
-	NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:[NSString stringWithUTF8String:path]];
-	NSNumber *val = [NSNumber numberWithBool:value];
-	[dict setValue:val forKey:[NSString stringWithUTF8String:path]];
-	[dict writeToFile: [NSString stringWithUTF8String:path] atomically: YES];
+	[prefs setValue:[NSNumber numberWithBool:value] forKey:[NSString stringWithUTF8String:key]];
+	[prefs writeToFile:[NSString stringWithUTF8String:path] atomically: YES];
 }
 
 void settings::settings_proxy::set(int value)
 {
-	NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:[NSString stringWithUTF8String:path]];
-	NSNumber *val = [NSNumber numberWithInt:value];
-	[dict setValue:val forKey:[NSString stringWithUTF8String:path]];
-	[dict writeToFile: [NSString stringWithUTF8String:path] atomically: YES];
+	[prefs setValue:[NSNumber numberWithInt:value] forKey:[NSString stringWithUTF8String:key]];
+	[prefs writeToFile: [NSString stringWithUTF8String:path] atomically: YES];
 }
 
 void settings::settings_proxy::set(float value)
 {
-	NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:[NSString stringWithUTF8String:path]];
-	NSNumber *val = [NSNumber numberWithFloat:value];
-	[dict setValue:val forKey:[NSString stringWithUTF8String:path]];
-	[dict writeToFile: [NSString stringWithUTF8String:path] atomically: YES];
+	[prefs setValue: [NSNumber numberWithFloat:value] forKey:[NSString stringWithUTF8String:key]];
+	[prefs writeToFile: [NSString stringWithUTF8String:path] atomically: YES];
+}
+
+
+__attribute__((constructor))
+void LoadPrefs(void)
+{
+	prefs =  [NSMutableDictionary dictionaryWithContentsOfFile:@"/var/mobile/Library/Preferences/jetpack.plist"];
 }

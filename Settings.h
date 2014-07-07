@@ -13,24 +13,54 @@ File: Settings.h
 #include <Foundation/Foundation.h>
 
 extern const char *path;
+extern NSMutableDictionary *prefs;
 #define Settings(p) const char* path = p; settings
 
 using namespace std;
 
 class settings {
 public:
-	settings(const char *_path) { path = _path; }
+
 	static int GetPrefInt(const char* key);
 	static float GetPrefFloat(const char* key);
 	static bool GetPrefBool(const char* key);
 
 	class settings_proxy {
 	public:
-		const char* key;
+		char* key;
+
+		union Value {
+			int asInt;
+			bool asBool;
+			float asFloat;
+		} value;
+
+		enum ValueType {
+			Int,
+			Bool,
+			Float
+		} valueType;
 
 		settings_proxy(const char* _key) {
-			key = _key;
+			key = (char*)malloc(strlen(_key));
+			strcpy(key, _key);
 		 }
+
+		 settings_proxy(int val) {
+		 	value.asInt = val; 
+		 	valueType = Int;
+		 }
+
+		 settings_proxy(float val) {
+		 	value.asFloat = val;
+		 	valueType = Float;
+		 }
+
+		settings_proxy(bool val) {
+		 	 value.asBool = val;
+		 	 valueType = Bool;
+		 }
+ 
 
 		 __attribute__((noinline))
 		operator int() {
@@ -46,10 +76,33 @@ public:
 		operator bool() {
 			return settings::GetPrefBool(key);
 		}
+
+		__attribute__((noinline))
+		settings_proxy& operator= (const settings_proxy &source) {
+			switch(source.valueType)
+			{
+				case Int: {
+					set(source.value.asInt);
+					break;
+				}
+				case Bool: {
+					set(source.value.asBool);
+					break;
+				}
+				case Float: {
+					set(source.value.asFloat);
+					break;
+				}
+			}
+			return *this;
+		}
 		void set(bool value);
 		void set(int value);
 		void set(float value);
 
+		~settings_proxy() {
+			free(key);
+		}
 	};
 	__attribute__((noinline))
 	settings_proxy operator[] (const char* key) {
