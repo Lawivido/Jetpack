@@ -2,6 +2,7 @@
 Jetpack Cheats
 By: Lawivido/Razzile
 Credit Due: AlphaMatter
+File: Tweak.xm
 
 Features:
 Auto Collect Coins [0x12CF0] WORKS
@@ -28,7 +29,7 @@ To-Do
 	4. Auto-Orientation
 */
 
-#include <substrate.h>
+#include "Settings.h"
 
 @interface MortarAppDelegate : NSObject <UITableViewDelegate, UITableViewDataSource>
 @end
@@ -41,60 +42,9 @@ UISlider *missileSpeedSlider = [[UISlider alloc] initWithFrame:CGRectMake(20, ho
 
 BOOL menuEnabled = false;
 
-BOOL enabled[7] = {true,true,true,true,true,true,true};
-
-float (*old_missileSpeed)(void *self, unsigned long speed);
-bool (*old_autoCoins)(void *self, bool autocoin);
-bool (*old_autoVehicle)(void *self, bool autovehicle);
-bool (*old_autoToken)(void *self, bool autoToken);
-bool (*old_dumbLazer)(void *self, bool dumb);
-bool (*old_dumbMissile)(void *self, bool dumb);
-void (*old_dumbMissileBot)(void *self);
-bool (*old_dumbGates)(void *self, bool dumb);
-bool (*old_boostHeadstart2)(void *self);
-
-//------
-//Coins
-//------
-
-bool autoCoins(void *self, bool autocoin) {
-	return true;
-}
-
-void autoCoinsOff(void *self, bool autocoin) {
-}
-
-bool autoVehicle(void *self, bool autovehicle) {
-	return true;
-}
-
-bool autoToken(void *self, bool autotoken) {
-	return true;
-}
-
-bool dumbLazer(void *self, bool dumb) {
-	return false;
-}
-
-bool dumbMissile(void *self, bool dumb) {
-	return false;
-}
-
-bool dumbGates(void *self, bool dumb) {
-	return false;
-}
-
-void dumbMissileBot(void *self) {
-}
-
-float missileSpeed(void *self, unsigned long speed) {
-	//return 1.0f;
-	return missileSpeedSlider.value;
-}
-
-/* bool boostHeadstart2(void *self) {
-	return true;
-} */
+bool enabled[7] = {false,false,false,false,false,false,false};
+const char* keyList[7] = {"kCurrency", "kCoins", "kVehicle", "kTokens", "kInvincibility", "kMissile"};
+int hacksCount = 5;
 
 UIButton *enableMenu;
 
@@ -104,11 +54,6 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 %hook MortarAppDelegate
 
 -(void)applicationDidBecomeActive:(id)arg {
-/* UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Jetpack Joyride Hack" message:@"Hacked by Lawivido&Razzile for iOSCheaters.com!" delegate:nil cancelButtonTitle:@"Enjoy!" otherButtonTitles:nil];
-[alert show];
-[alert release]; */
-	%orig;
-
 	hookedView = MSHookIvar<UIView*>(self,"_window");
 
 	hacksView = [[UIView alloc] initWithFrame:CGRectMake(0,0, hookedView.bounds.size.width, hookedView.bounds.size.height)]; 
@@ -121,13 +66,15 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 	[hacksList setBackgroundView:nil];
 	[hacksList setDataSource:self];
 	[hacksList setDelegate:self];
+	[hacksList setAlpha:0.8];
 	[hacksView addSubview:hacksList];
 	[hacksList setHidden:YES];
-	
+
+
 	missileSpeedSlider.minimumValue = 1.0;
 	missileSpeedSlider.maximumValue = 20.0;
 	missileSpeedSlider.continuous = YES;
-	missileSpeedSlider.value = 1.0;
+	missileSpeedSlider.value = jetpackSettings["kMissile"];
 	[missileSpeedSlider addTarget:self action:@selector(missileSpeedSliderChanged:) forControlEvents:UIControlEventValueChanged];
 
  	enableMenu = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -136,6 +83,11 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 	[enableMenu addTarget:self action:@selector(showMenu) forControlEvents:UIControlEventTouchUpInside];
 
 	[hookedView addSubview: enableMenu];
+	for (int i = 0; i < hacksCount; i++)
+	{
+		enabled[i] = jetpackSettings[keyList[i]];
+	}
+	return %orig;
 }
 
 %new
@@ -155,6 +107,7 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 	NSIndexPath *missileSpeedCell = [NSIndexPath indexPathForRow:4 inSection:0];
 	UITableViewCell *cell = [hacksList cellForRowAtIndexPath:missileSpeedCell];
 	cell.textLabel.text = missileSpeedSliderValue;
+	jetpackSettings["kMissile"] = missileSpeedSlider.value;
 }
 
 %new
@@ -164,12 +117,14 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 
 %new
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-	cellNames = [[NSMutableArray arrayWithObjects:@"Auto Collect Coins",@"Auto Collect Vehicle",@"Auto Collect Tokens",@"Invincibility",@"Missile Speed Multiplier: 1.000000",@"",@"Return",nil] retain];
+	if(!cellNames)
+		cellNames = [[NSMutableArray arrayWithObjects:@"Unlimited Coins",@"Auto Collect Coins",@"Auto Collect Vehicle",@"Auto Collect Tokens",@"Invincibility",@"Missile Speed Multiplier: 1.000000",@"",@"Return",nil] retain];
 	return [cellNames count];
 }
 
 %new 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+	
 	static NSString* const SwitchCellID = @"SwitchCell";
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:SwitchCellID];
 
@@ -181,15 +136,14 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 		cell.textLabel.textColor = [UIColor blackColor];
 }
 
-	if (!enabled[indexPath.row] && indexPath.row != 6 && indexPath.row != 5 && indexPath.row != 4) {
+	if (enabled[indexPath.row] && indexPath.row != 7 && indexPath.row != 6 && indexPath.row != 5) {
 		cell.accessoryType = UITableViewCellAccessoryCheckmark;
 	} else {
 		cell.accessoryType = UITableViewCellAccessoryNone;
 	}
 	
-	if (indexPath.row == 5) {
+	if (indexPath.row == 6) {
 		[cell addSubview:missileSpeedSlider];
-		MSHookFunction((void*)(0x5CA68+1),(void *)missileSpeed,(void**)&old_missileSpeed);
 	}
 	return cell;
 }
@@ -209,33 +163,25 @@ NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 		[hacksView setHidden:YES];
 		[hacksList setHidden:YES];
 		[enableMenu setHidden:NO];
-	} else if (indexPath.row == 0) {	//coins
-		if (enabled[0]) {
-			enabled[0] = false;
-			MSHookFunction((void*)(0x12CF0+1),(void *)autoCoins,(void**)&old_autoCoins);
-		} else if (!enabled[0]) {
-			enabled[0] = true;
-			MSHookFunction((void*)(0x12CF0+1),(void *)autoCoinsOff,(void**)&old_autoCoins);
-		}
-	} else if (indexPath.row == 1) { //vehicles
-		enabled[1] = false;
-		MSHookFunction((void*)(0x897E8+1),(void *)autoVehicle,(void**)&old_autoVehicle);	
+	} else if (indexPath.row == 0) 
+	{	//coins;
+		bool coins = jetpackSettings["kCoins"];
+		jetpackSettings["kCoins"] = !coins;	
+		enabled[0] = !coins;
+	} 
+	else if (indexPath.row == 1) { //vehicles
+		bool vehicles = jetpackSettings["kVehicle"];
+		jetpackSettings["kVehicle"] = !vehicles;
+		enabled[1] = !vehicles;	
 	} else if (indexPath.row == 2) { //token
-		enabled[2] = false;
-		MSHookFunction((void*)(0x9C928+1),(void *)autoToken,(void**)&old_autoToken);	
+		bool tokens = jetpackSettings["kTokens"];
+		jetpackSettings["kTokens"] = !tokens;
+		enabled[2] = !tokens;		
 	} else if (indexPath.row == 3) { //invincibility
-		enabled[3] = false;
-		MSHookFunction((void*)(0x161C8+1),(void *)dumbLazer,(void**)&old_dumbLazer);
-		MSHookFunction((void*)(0x154AF8+1),(void *)dumbMissile,(void**)&old_dumbMissile);
-		MSHookFunction((void*)(0x1BB38+1),(void *)dumbGates,(void**)&old_dumbGates);
-		MSHookFunction((void*)(0x15494C+1),(void *)dumbMissileBot,(void**)&old_dumbMissileBot);		
-	} /* else if (indexPath.row == 4) { //missile speed
-		enabled[4] = false;
-		[cell addSubview:missileSpeedSlider];
-		cell.textLabel.text = [NSString stringWithFormat:@"Missile Speed Multiplier: %f", missileSpeedSlider.value];
-		//MSHookFunction((void*)(0x5CA68+1),(void *)missileSpeed,(void**)&old_missileSpeed);	
-	} */
-
+		bool invincibility = jetpackSettings["kInvincibility"];
+		jetpackSettings["kInvincibility"] = !invincibility;	
+		enabled[3] = !invincibility;	
+	} 
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
