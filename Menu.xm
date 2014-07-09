@@ -31,8 +31,10 @@ To-Do
 
 #include "Settings.h"
 
-@interface MortarAppDelegate : NSObject <UITableViewDelegate, UITableViewDataSource>
+@interface MortarAppDelegate : NSObject <UITableViewDelegate, UITableViewDataSource, UIAlertViewDelegate, NSURLConnectionDelegate>
 @end
+
+NSString *currentVersion = @"1.0";
 
 UIView *hookedView, *hacksView;
 UITableView *hacksList;
@@ -80,7 +82,7 @@ UIButton *enableMenu;
 	[missileSpeedSlider addTarget:self action:@selector(missileSpeedSliderChanged:) forControlEvents:UIControlEventValueChanged];
 
 	runSpeedSlider.minimumValue = 10.0;
-	runSpeedSlider.maximumValue = 5000.0;
+	runSpeedSlider.maximumValue = 2000.0;
 	runSpeedSlider.continuous = YES;
 	runSpeedSlider.value = jetpackSettings["kSpeed"];
 	[runSpeedSlider addTarget:self action:@selector(runSpeedSliderChanged:) forControlEvents:UIControlEventValueChanged];
@@ -95,6 +97,8 @@ UIButton *enableMenu;
 	{
 		enabled[i] = jetpackSettings[keyList[i]];
 	}
+	NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://razzland.com/cheats/jetpack.php?vers=%@", currentVersion]]];
+	[[NSURLConnection alloc] initWithRequest:request delegate:self];
 	return %orig;
 }
 
@@ -138,17 +142,18 @@ UIButton *enableMenu;
 	{
 		float missileSpeed = jetpackSettings["kMissile"];
 		float runSpeed = jetpackSettings["kSpeed"];
-		cellNames = [[NSMutableArray arrayWithObjects:	@"Unlimited Coins",
-														@"Auto Collect Coins",
-														@"Auto Collect Vehicle",
-														@"Auto Collect Tokens",
-														@"Invincibility",
-														[NSString stringWithFormat:@"Missile Speed Multiplier: %f", missileSpeed],
-														@"",
-														[NSString stringWithFormat:@"Run Speed Multiplier: %f", runSpeed],
-														@"",
-														@"Return",
-														nil] retain];
+		cellNames = [[NSMutableArray arrayWithObjects:
+								@"Unlimited Coins",
+								@"Auto Collect Coins",
+								@"Auto Collect Vehicle",
+								@"Auto Collect Tokens",
+								@"Invincibility",
+								[NSString stringWithFormat:@"Missile Speed Multiplier: %f", missileSpeed],
+								@"",
+								[NSString stringWithFormat:@"Run Speed Multiplier: %f", runSpeed],
+								@"",
+								@"Return",
+								nil] retain];
 	}
 	return [cellNames count];
 }
@@ -200,29 +205,66 @@ UIButton *enableMenu;
 		[hacksList setHidden:YES];
 		[enableMenu setHidden:NO];
 	} else if (indexPath.row == 0) 
-	{	//coins;
+	{
 		bool currency = jetpackSettings["kCurrency"];
 		jetpackSettings["kCurrency"] = !currency;	
 		enabled[0] = !currency;
-	} else if (indexPath.row == 1) 
-	{	//coins;
+	} 
+	else if (indexPath.row == 1) 
+	{
 		bool coins = jetpackSettings["kCoins"];
 		jetpackSettings["kCoins"] = !coins;	
 		enabled[0] = !coins;
-	} else if (indexPath.row == 2) { //vehicles
+	} 
+	else if (indexPath.row == 2) {
 		bool vehicles = jetpackSettings["kVehicle"];
 		jetpackSettings["kVehicle"] = !vehicles;
 		enabled[1] = !vehicles;	
-	} else if (indexPath.row == 3) { //token
+	} 
+	else if (indexPath.row == 3) { 
 		bool tokens = jetpackSettings["kTokens"];
 		jetpackSettings["kTokens"] = !tokens;
 		enabled[2] = !tokens;		
-	} else if (indexPath.row == 4) { //invincibility
+	} 
+	else if (indexPath.row == 4) { 
 		bool invincibility = jetpackSettings["kInvincibility"];
 		jetpackSettings["kInvincibility"] = !invincibility;	
 		enabled[3] = !invincibility;	
 	}
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
+
+%new
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
+	NSString *response = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+	if([response isEqualToString:@"update"])
+	{
+		UIAlertView *alert = [[UIAlertView alloc] 
+			initWithTitle:@"Update" 
+			message:@"An Update is available for the mod menu, would you like to download? " 
+			delegate:nil 
+			cancelButtonTitle:@"No" 
+			otherButtonTitles:@"Yes", nil];
+
+		alert.delegate = self;
+		[alert show];
+		[alert release];
+	}
+	else if([response isEqualToString:@"kill"])
+	{
+		exit(0);
+	}
+}
+
+%new
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    NSString *title = [alertView buttonTitleAtIndex:buttonIndex];
+    if([title isEqualToString:@"Yes"])
+    {
+    	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://ioscheaters.com/topic/5286-jetpack-joyride-mod-menu-v1701/"]];
+    }
+}
+
 
 %end
