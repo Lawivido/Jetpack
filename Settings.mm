@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
 Jetpack Cheats
 By: Lawivido/Razzile
@@ -5,6 +6,8 @@ Credit Due: AlphaMatter
 File: Settings.mm
 */
 
+=======
+>>>>>>> origin/master
 #include "Settings.h"
 
 Settings("/var/mobile/Library/Preferences/jetpack.plist") jetpackSettings;

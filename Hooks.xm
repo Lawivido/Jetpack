@@ -2,7 +2,11 @@
 Jetpack Cheats
 By: Lawivido/Razzile
 Credit Due: AlphaMatter 
+<<<<<<< HEAD
 File: Hooks.xm
+=======
+File: Hooks.mm
+>>>>>>> origin/master
 */
 #include <substrate.h>
 #include "Settings.h"
