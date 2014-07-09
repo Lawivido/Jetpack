@@ -28,10 +28,10 @@ bool (*old_Missile_CollidingWithPlayer)(void *ptr, void *game);
 void (*old_Missile_CollidingWithPlayerBot)(void *ptr);
 bool (*old_Gate_CollidingWithPlayer)(void *ptr, void *game);
 void (*old_Player_Update)(void *ptr, void *game);
+void (*old_CreditsView_InsertItem)(void *ptr, const char *item, void *color);
 void (*Missile_Kill)(void *ptr);
 void (*Missile_Destroy)(void *ptr);
-void (*old_CreditsView_InsertItem)(void *ptr, const char *item, void *color);
-
+bool (*Player_IsDead)(void *ptr);
 //------
 //Coins
 //------
@@ -114,7 +114,10 @@ float missileSpeed(void *ptr, unsigned long speed) {
 
 void Player_Update(void *ptr, void *game)
 {
-	*CURRENT_LEVEL_VELOCITY = jetpackSettings["kSpeed"];
+	if(!Player_IsDead(ptr))
+	{
+		*CURRENT_LEVEL_VELOCITY = jetpackSettings["kSpeed"];
+	}
 	return old_Player_Update(ptr, game);
 }
 
@@ -133,7 +136,7 @@ void CreditsView_InsertItem(void *ptr, const char *item, void *color) {
 %ctor 
 {
 	MSHookFunction((void*)(0x12CF0+1),(void *)Coin_CollidingWithPlayer,(void**)&old_Coin_CollidingWithPlayer);
-	MSHookFunction((void*)(0x128C08+1), (void*)GetCurrencyQty, (void**)&old_GetCurrencyQty);
+	MSHookFunction((void*)(0x128C08+1),(void*)GetCurrencyQty,(void**)&old_GetCurrencyQty);
 	MSHookFunction((void*)(0x897E8+1),(void *)Vehicle_CollidingWithPlayer,(void**)&old_Vehicle_CollidingWithPlayer);
 	MSHookFunction((void*)(0x9C928+1),(void *)Token_CollidingWithPlayer,(void**)&old_Token_CollidingWithPlayer);
 	MSHookFunction((void*)(0x161C8+1),(void *)Lazer_CollidingWithPlayer,(void**)&old_Lazer_CollidingWithPlayer);
@@ -145,5 +148,5 @@ void CreditsView_InsertItem(void *ptr, const char *item, void *color) {
 
 	Missile_Kill = (void (*)(void*))(0x1559F0+1);
 	Missile_Destroy = (void (*)(void*))(0x1537C8+1);
-
+	Player_IsDead = (bool (*)(void*))(0x228EC+1);
 }
