@@ -28,10 +28,12 @@ bool (*old_Missile_CollidingWithPlayer)(void *ptr, void *game);
 void (*old_Missile_CollidingWithPlayerBot)(void *ptr);
 bool (*old_Gate_CollidingWithPlayer)(void *ptr, void *game);
 void (*old_Player_Update)(void *ptr, void *game);
+void*(*old_Worker_Update)(void *ptr, void *game);
 void (*old_CreditsView_InsertItem)(void *ptr, const char *item, void *color);
 void (*Missile_Kill)(void *ptr);
 void (*Missile_Destroy)(void *ptr);
 bool (*Player_IsDead)(void *ptr);
+void (*Worker_SetIsNude)(void *ptr, bool nude);
 //------
 //Coins
 //------
@@ -126,8 +128,12 @@ void CreditsView_InsertItem(void *ptr, const char *item, void *color) {
 		old_CreditsView_InsertItem(ptr,"Cheaters:",YELLOW_COLOR);
 		old_CreditsView_InsertItem(ptr,"Razzile",WHITE_COLOR);
 		old_CreditsView_InsertItem(ptr,"Lawivido",WHITE_COLOR);
-		old_CreditsView_InsertItem(ptr,"DRM",WHITE_COLOR);
 		old_CreditsView_InsertItem(ptr,"Visit iOSCheaters.com",CYAN_COLOR);
+		old_CreditsView_InsertItem(ptr,"",WHITE_COLOR);
+		old_CreditsView_InsertItem(ptr,"Other Nice People:",CYAN_COLOR);
+		old_CreditsView_InsertItem(ptr,"AlphaMATTER",WHITE_COLOR);
+		old_CreditsView_InsertItem(ptr,"Shinitai",WHITE_COLOR);
+		old_CreditsView_InsertItem(ptr,"Alamer99",WHITE_COLOR);
 		old_CreditsView_InsertItem(ptr,"",WHITE_COLOR);
 	}
 	old_CreditsView_InsertItem(ptr,item,color);
