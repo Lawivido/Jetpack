@@ -128,6 +128,7 @@ void CreditsView_InsertItem(void *ptr, const char *item, void *color) {
 		old_CreditsView_InsertItem(ptr,"Cheaters:",YELLOW_COLOR);
 		old_CreditsView_InsertItem(ptr,"Razzile",WHITE_COLOR);
 		old_CreditsView_InsertItem(ptr,"Lawivido",WHITE_COLOR);
+		old_CreditsView_InsertItem(ptr,"DRM",WHITE_COLOR);
 		old_CreditsView_InsertItem(ptr,"Visit iOSCheaters.com",CYAN_COLOR);
 		old_CreditsView_InsertItem(ptr,"",WHITE_COLOR);
 		old_CreditsView_InsertItem(ptr,"Other Nice People:",CYAN_COLOR);

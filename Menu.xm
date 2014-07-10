@@ -13,6 +13,7 @@ To-Do
 #define degreesToRadian(angle) ((angle) / 180.0 * M_PI)
 
 @interface MortarAppDelegate : NSObject <UITableViewDelegate, UITableViewDataSource, UIAlertViewDelegate, NSURLConnectionDelegate>
+- (void)showMenu;
 @end
 
 NSString *currentVersion = @"1.0";
@@ -21,10 +22,10 @@ UIView *hookedView, *hacksView;
 UITableView *hacksList;
 
 NSMutableArray *cellNames;
-UISlider *missileSpeedSlider = [[UISlider alloc] initWithFrame:CGRectMake(20, hookedView.bounds.size.height/2, 275, 45.0)];
+UISlider *missileSpeedSlider = [[UISlider alloc] initWithFrame:CGRectMake(20, 0, 275, 45.0)];
 NSString *missileSpeedSliderValue = @"Missile Speed Multiplier: 1.000000";
 
-UISlider *runSpeedSlider = [[UISlider alloc] initWithFrame:CGRectMake(20, hookedView.bounds.size.height/2, 275, 45.0)];
+UISlider *runSpeedSlider = [[UISlider alloc] initWithFrame:CGRectMake(20, 0, 275, 45.0)];
 NSString *runSpeedSliderValue = @"Run Speed Multiplier: 1.000000";
 
 BOOL menuEnabled = false;
@@ -36,6 +37,8 @@ int hacksCount = 6;
 UIButton *enableMenu;
 
 NSMutableArray *selectedItems;
+
+NSURLConnection *connection;
 
 %hook MortarAppDelegate
 
@@ -52,8 +55,28 @@ NSMutableArray *selectedItems;
 	[hacksView setBackgroundColor:[UIColor clearColor]];
 	[hookedView addSubview:hacksView];
 	[hacksView setHidden:YES];
-	
-	CGAffineTransform transform = CGAffineTransformMakeRotation(M_PI_2);
+
+	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+	CGAffineTransform transform;
+	switch (orientation) {
+		case UIDeviceOrientationLandscapeLeft: {
+			transform = CGAffineTransformMakeRotation(M_PI_2);
+			[hacksView setTransform:transform];
+			[enableMenu setTransform:transform];
+			enableMenu.center = CGPointMake(20, 100);
+			break;
+		}
+		case UIDeviceOrientationLandscapeRight: {
+			transform = CGAffineTransformMakeRotation(270*M_PI/180);
+			[hacksView setTransform:transform];
+			[enableMenu setTransform:transform];
+			enableMenu.center = CGPointMake(hookedView.bounds.size.width-20, 100);
+			break;
+		}
+	}
+
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged) name:@"UIDeviceOrientationDidChangeNotification" object:nil];
+
 	[hacksView setTransform:transform];
 	hacksView.center = CGPointMake([[UIScreen mainScreen] bounds].size.width/2, [[UIScreen mainScreen] bounds].size.height/2);
 
@@ -87,10 +110,10 @@ NSMutableArray *selectedItems;
 	enableMenu.layer.borderColor = [UIColor whiteColor].CGColor;
 	enableMenu.layer.borderWidth = 1.0f;
 	[enableMenu addTarget:self action:@selector(showMenu) forControlEvents:UIControlEventTouchUpInside];
-	
+
 	float missileSpeed = jetpackSettings["kMissile"];
 	float runSpeed = jetpackSettings["kSpeed"];
-	cellNames = [[NSMutableArray arrayWithObjects:
+	cellNames = [NSMutableArray arrayWithObjects:
 								@"Unlimited Coins",
 								@"Auto Collect Coins",
 								@"Auto Collect Vehicle",
@@ -101,7 +124,7 @@ NSMutableArray *selectedItems;
 								[NSString stringWithFormat:@"Run Speed Multiplier: %f", runSpeed],
 								@"",
 								@"Return",
-								nil] retain];
+								nil];
 
 	selectedItems = [[NSMutableArray alloc] init];
 	[hookedView addSubview: enableMenu];
@@ -113,14 +136,41 @@ NSMutableArray *selectedItems;
 		}
 	}
 	NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://razzland.com/cheats/jetpack.php?vers=%@", currentVersion]]];
-	[[NSURLConnection alloc] initWithRequest:request delegate:self];
+	connection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
+
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged) name:@"UIDeviceOrientationDidChangeNotification" object:nil];
+
 	return %orig;
 }
 
 - (void)applicationWillResignActive:(id)application {
-		[hacksView setHidden:YES];
-		[hacksList setHidden:YES];
+		[hacksView removeFromSuperview];
+		[hacksList removeFromSuperview];
+		[enableMenu removeFromSuperview];
 		return %orig;
+}
+
+%new
+- (void)orientationChanged {
+	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+	CGAffineTransform transform;
+	switch (orientation) {
+		case UIDeviceOrientationLandscapeLeft: {
+			transform = CGAffineTransformMakeRotation(M_PI_2);
+			[hacksView setTransform:transform];
+			[enableMenu setTransform:transform];
+			enableMenu.center = CGPointMake(20, 100);
+			break;
+		}
+		case UIDeviceOrientationLandscapeRight: {
+			transform = CGAffineTransformMakeRotation(270*M_PI/180);
+			[hacksView setTransform:transform];
+			[enableMenu setTransform:transform];
+			enableMenu.center = CGPointMake(hookedView.bounds.size.width-20, 100);
+			break;
+		}
+	}
+
 }
 
 %new
@@ -128,9 +178,13 @@ NSMutableArray *selectedItems;
 	if (!menuEnabled) {
 		[hacksView setHidden:NO];
 		[hacksList setHidden:NO];
+		[enableMenu removeFromSuperview];
+		menuEnabled = true;
 	} else {
 		[hacksView setHidden:YES];
 		[hacksList setHidden:YES];
+		[hookedView addSubview:enableMenu];
+		menuEnabled = false;
 	}
 }
 
@@ -184,12 +238,6 @@ NSMutableArray *selectedItems;
 		}
 	}
 
-	// if (enabled[indexPath.row] &&  indexPath.row != 9 && indexPath.row != 8 && indexPath.row != 7 && indexPath.row != 6 && indexPath.row != 5) {
-	// 	cell.accessoryType = UITableViewCellAccessoryCheckmark;
-	// } else {
-	// 	cell.accessoryType = UITableViewCellAccessoryNone;
-	// }
-	
 	if (indexPath.row == 6) {
 		[cell addSubview:missileSpeedSlider];
 	}
@@ -212,9 +260,7 @@ NSMutableArray *selectedItems;
 		[[tableView cellForRowAtIndexPath:indexPath] setAccessoryType:UITableViewCellAccessoryNone];
 	}
 	if (indexPath.row == 9) { 
-		[hacksView setHidden:YES];
-		[hacksList setHidden:YES];
-		[enableMenu setHidden:NO];
+		[self showMenu];
 	}
 	if (indexPath.row < 6)
 	{
@@ -231,35 +277,6 @@ NSMutableArray *selectedItems;
 			[selectedItems addObject:rowNum];
 		}
 	}
-
-
-	//  else if (indexPath.row == 0) 
-	// {
-	// 	bool currency = jetpackSettings["kCurrency"];
-	// 	jetpackSettings["kCurrency"] = !currency;	
-	// 	enabled[0] = !currency;
-	// } 
-	// else if (indexPath.row == 1) 
-	// {
-	// 	bool coins = jetpackSettings["kCoins"];
-	// 	jetpackSettings["kCoins"] = !coins;	
-	// 	enabled[0] = !coins;
-	// } 
-	// else if (indexPath.row == 2) {
-	// 	bool vehicles = jetpackSettings["kVehicle"];
-	// 	jetpackSettings["kVehicle"] = !vehicles;
-	// 	enabled[1] = !vehicles;	
-	// } 
-	// else if (indexPath.row == 3) { 
-	// 	bool tokens = jetpackSettings["kTokens"];
-	// 	jetpackSettings["kTokens"] = !tokens;
-	// 	enabled[2] = !tokens;		
-	// } 
-	// else if (indexPath.row == 4) { 
-	// 	bool invincibility = jetpackSettings["kInvincibility"];
-	// 	jetpackSettings["kInvincibility"] = !invincibility;	
-	// 	enabled[3] = !invincibility;	
-	// }
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
@@ -294,6 +311,5 @@ NSMutableArray *selectedItems;
     	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://ioscheaters.com/topic/5286-jetpack-joyride-mod-menu-v1701/"]];
     }
 }
-
 
 %end
