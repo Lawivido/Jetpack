@@ -18,6 +18,7 @@ To-Do
 
 NSString *currentVersion = @"1.0";
 
+UIWindow *window;
 UIView *hookedView, *hacksView;
 UITableView *hacksList;
 
@@ -48,40 +49,16 @@ NSURLConnection *connection;
 	{
 		return %orig;
 	}
-	hookedView = MSHookIvar<UIView*>(self,"_window");
+	window = MSHookIvar<UIWindow*>(self,"_window");
+	hookedView = [window rootViewController].view;
 
-	hacksView = [[UIView alloc] initWithFrame:CGRectMake(0,0, hookedView.bounds.size.height, hookedView.bounds.size.width)]; 
+	hacksView = [[UIView alloc] initWithFrame:CGRectMake(0,0, hookedView.bounds.size.width, hookedView.bounds.size.height)]; 
 
 	[hacksView setBackgroundColor:[UIColor clearColor]];
 	[hookedView addSubview:hacksView];
 	[hacksView setHidden:YES];
-
-	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
-	CGAffineTransform transform;
-	switch (orientation) {
-		case UIDeviceOrientationLandscapeLeft: {
-			transform = CGAffineTransformMakeRotation(M_PI_2);
-			[hacksView setTransform:transform];
-			[enableMenu setTransform:transform];
-			enableMenu.center = CGPointMake(20, 100);
-			break;
-		}
-		case UIDeviceOrientationLandscapeRight: {
-			transform = CGAffineTransformMakeRotation(270*M_PI/180);
-			[hacksView setTransform:transform];
-			[enableMenu setTransform:transform];
-			enableMenu.center = CGPointMake(hookedView.bounds.size.width-20, 100);
-			break;
-		}
-	}
-
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged) name:@"UIDeviceOrientationDidChangeNotification" object:nil];
-
-	[hacksView setTransform:transform];
-	hacksView.center = CGPointMake([[UIScreen mainScreen] bounds].size.width/2, [[UIScreen mainScreen] bounds].size.height/2);
-
-	CGRect rect = CGRectMake(0,0,hacksView.bounds.size.width, hookedView.bounds.size.width);
-	hacksList = [[UITableView alloc] initWithFrame:rect style:UITableViewStyleGrouped];
+	
+	hacksList = [[UITableView alloc] initWithFrame:hacksView.frame style:UITableViewStyleGrouped];
 	[hacksList setBackgroundView:nil];
 	[hacksList setDataSource:self];
 	[hacksList setDelegate:self];
@@ -104,9 +81,8 @@ NSURLConnection *connection;
 	[runSpeedSlider addTarget:self action:@selector(runSpeedSliderChanged:) forControlEvents:UIControlEventValueChanged];
 
  	enableMenu = [UIButton buttonWithType:UIButtonTypeCustom];
-	[enableMenu setFrame: CGRectMake(0,100,120,25)]; //hookedView.bounds.origin.x+(hookedView.bounds.size.height/2
+	[enableMenu setFrame: CGRectMake(0,100,120,25)]; 
 	[enableMenu setTitle:@"Open Menu" forState:UIControlStateNormal];
-	[enableMenu setTransform:transform];
 	enableMenu.layer.borderColor = [UIColor whiteColor].CGColor;
 	enableMenu.layer.borderWidth = 1.0f;
 	[enableMenu addTarget:self action:@selector(showMenu) forControlEvents:UIControlEventTouchUpInside];
@@ -137,8 +113,6 @@ NSURLConnection *connection;
 	}
 	NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://razzland.com/cheats/jetpack.php?vers=%@", currentVersion]]];
 	connection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
-
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged) name:@"UIDeviceOrientationDidChangeNotification" object:nil];
 
 	return %orig;
 }
@@ -219,7 +193,7 @@ NSURLConnection *connection;
 %new 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 	
-	static NSString* const SwitchCellID = [NSString stringWithFormat:@"%d-%d",indexPath.section,indexPath.row];
+	static NSString* const SwitchCellID = [NSString stringWithFormat:@"%d",indexPath.row];
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:SwitchCellID];
 
 	if(cell == nil) { 
@@ -229,20 +203,19 @@ NSURLConnection *connection;
 		[cell setBackgroundColor:[UIColor whiteColor]];
 		cell.textLabel.textColor = [UIColor blackColor];
 		cell.accessoryType = UITableViewCellAccessoryNone;
-	}
 
-	if (indexPath.row < 6) {
-		NSNumber *rowNum = @(indexPath.row);
-		if ([selectedItems containsObject:rowNum]) {
-			cell.accessoryType = UITableViewCellAccessoryCheckmark;
+		if (indexPath.row == 6) {
+			[cell addSubview:missileSpeedSlider];
 		}
-	}
-
-	if (indexPath.row == 6) {
-		[cell addSubview:missileSpeedSlider];
-	}
-	if (indexPath.row == 8) {
-		[cell addSubview:runSpeedSlider];
+		if (indexPath.row == 8) {
+			[cell addSubview:runSpeedSlider];
+		}
+		if (indexPath.row < 6) {
+			NSNumber *rowNum = @(indexPath.row);
+			if ([selectedItems containsObject:rowNum]) {
+				cell.accessoryType = UITableViewCellAccessoryCheckmark;
+			}
+		}
 	}
 	return cell;
 }
