@@ -197,8 +197,16 @@ NSURLConnection *connection;
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:SwitchCellID];
 
 	if(cell == nil) { 
-		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:SwitchCellID];
-		cell.selectionStyle = UITableViewCellSelectionStyleGray;
+		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
+		if(indexPath.row < 5)
+		{
+			cell.selectionStyle = UITableViewCellSelectionStyleGray;
+		}
+		else
+		{
+			cell.selectionStyle = UITableViewCellSelectionStyleNone;
+		}
+
 		cell.textLabel.text = [cellNames objectAtIndex:indexPath.row];
 		[cell setBackgroundColor:[UIColor whiteColor]];
 		cell.textLabel.textColor = [UIColor blackColor];
@@ -222,12 +230,7 @@ NSURLConnection *connection;
 
 %new
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
- 	if ([tableView cellForRowAtIndexPath:indexPath].accessoryType == UITableViewCellAccessoryNone 
-	&& [tableView cellForRowAtIndexPath:indexPath] != [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:5 inSection:0]]
-	&& [tableView cellForRowAtIndexPath:indexPath] != [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:6 inSection:0]]
-	&& [tableView cellForRowAtIndexPath:indexPath] != [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:7 inSection:0]]
-	&& [tableView cellForRowAtIndexPath:indexPath] != [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:8 inSection:0]]
-	&& [tableView cellForRowAtIndexPath:indexPath] != [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:9 inSection:0]]) {
+ 	if ([tableView cellForRowAtIndexPath:indexPath].accessoryType == UITableViewCellAccessoryNone && indexPath.row < 5) {
 		[[tableView cellForRowAtIndexPath:indexPath] setAccessoryType:UITableViewCellAccessoryCheckmark];
 	} else {
 		[[tableView cellForRowAtIndexPath:indexPath] setAccessoryType:UITableViewCellAccessoryNone];
